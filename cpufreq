@@ -1,0 +1,48 @@
+#!/bin/bash
+
+echo "CPU SCALING"
+
+ac_status=$(cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:51/ACPI0003:00/power_supply/ACAD/online)
+
+if [ $ac_status -eq 1 ]; then
+	echo "Charger is connected, going to turbo boost mode"
+	# CPUFREQ
+	echo "performance" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+	echo "performance" > /sys/devices/system/cpu/cpufreq/policy1/scaling_governor
+	
+	# CPU0
+	echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+
+	# CPU1
+	echo "performance" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+
+	echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo
+	max=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq)
+else
+
+	if [ $ac_status -eq 0 ]; then
+
+		echo "Charger not connected, going to powersave mode"
+		# CPUFREQ
+		echo "powersave" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+		echo "powersave" > /sys/devices/system/cpu/cpufreq/policy1/scaling_governor
+	
+		# CPU0
+		echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+	
+		# CPU1
+		echo "powersave" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+		
+		#Turbo boost
+
+		echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo
+		max=2165800
+	fi
+fi
+
+echo "Current governor is $(cat /sys/devices/system/cpu/cpufreq/policy0/scaling_governor)"
+echo "Max frequency is $max"
+echo "Max frequency is $max" > /home/log/cpufreq
+min=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq)
+echo "Min frequency is $min"
+echo "Min frequency is $min">> /home/log/cpufreq
