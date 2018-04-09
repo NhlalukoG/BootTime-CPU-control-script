@@ -1,0 +1,33 @@
+#!/bin/sh
+
+if [ "`whoami`" != "root" ];then
+	# Request root
+	sudo echo -n ""
+fi
+
+addrc(){
+	sudo echo "# CPU boot scaling" >> $1
+	sudo mkdir /etc/gscripts
+	sudo cp cpufreq /etc/gscripts
+	sudo chmod +x /etc/gscripts/cpufreq
+	sudo echo -e "pushd /etc/gscript\n./cpufreq &\npopd" >> $1
+}
+if [ -f /etc/rc.local ];then
+	path="/etc/rc.local"
+	if `cat /etc/rc.local | grep "boot scaling" >> /dev/null`;then
+		echo "Script already installed"
+	else
+		addrc $path
+	fi
+elif [ -f /etc/rc.d/rc.local];then
+	path="/etc/rc.d/rc.local"
+	if `cat /etc/rc.d/rc.local | grep "boot scaling" >> /dev/null`;then
+		echo "Script already installed"
+	else
+		addrc $path
+	fi
+else
+	path="/etc/rc.local"
+	sudo touch $path
+	addrc $path
+fi
